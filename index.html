@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ادارة المخزون والمبيعات</title>
+    <title>إدارة المخزون والمبيعات</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -383,8 +383,12 @@
             <div id="sales-history-page">
                 <h1>سجل المبيعات</h1>
                 <ul id="sales-history-list"></ul>
-                <button onclick="downloadSalesHistory()">تحميل سجل المبيعات</button>
-                <button class="delete-btn" onclick="clearSalesHistory()">حذف كل سجل المبيعات</button>
+                <div style="display: flex; justify-content: space-around; margin-top: 15px; flex-wrap: wrap;">
+                    <button style="width: 48%; margin-bottom: 10px;" onclick="downloadSalesHistory()">تحميل سجل المبيعات</button>
+                    <button style="width: 48%; margin-bottom: 10px;" class="delete-btn" onclick="clearSalesHistory()">حذف كل سجل المبيعات</button>
+                    <button style="width: 100%;" onclick="document.getElementById('import-file-input').click()">استيراد بيانات</button>
+                    <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importSalesHistory(event)">
+                </div>
             </div>
 
             <div id="admin-page">
@@ -1119,6 +1123,54 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        function importSalesHistory(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            if (!file.name.endsWith('.json')) {
+                alert('يرجى اختيار ملف بصيغة JSON.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (confirm('هل أنت متأكد من استيراد هذه البيانات؟ سيتم استبدال سجل المبيعات الحالي بالكامل.')) {
+                        salesHistory = importedData;
+                        
+                        // Recalculate totals and restore inventory based on new history
+                        salesTotal = 0;
+                        inventory = {}; // Start with a fresh inventory to avoid duplicates
+                        
+                        salesHistory.forEach(sale => {
+                            salesTotal += sale.total;
+                            sale.items.forEach(item => {
+                                if (inventory[item.name]) {
+                                    inventory[item.name].quantity += item.quantity;
+                                } else {
+                                    // A simple way to handle imports, assuming a new product is added to inventory
+                                    inventory[item.name] = { quantity: item.quantity, purchasePrice: 0, salePrice: item.price };
+                                }
+                            });
+                        });
+                        
+                        // We assume purchases and expenses are not in the JSON for simplicity, so they remain as is.
+
+                        saveToLocalStorage();
+                        displaySalesHistory();
+                        displayTotals();
+                        displayInventory();
+                        showMessage('تم استيراد البيانات بنجاح!', false);
+                    }
+                } catch (error) {
+                    alert('خطأ في قراءة الملف. يرجى التأكد من أن الملف بصيغة JSON صحيحة.');
+                }
+            };
+            reader.readAsText(file);
+        }
         
         // --- Event Listeners ---
         window.onclick = function(event) {
@@ -1151,4 +1203,3 @@
     </script>
 </body>
 </html>
-
