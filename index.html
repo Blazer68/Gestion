@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق المخزون والمبيعات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        h3 {
+            margin-top: 20px;
+        }
+        #inventory-list, #sales-history-list {
+            list-style: none;
+            padding: 0;
+        }
+        #inventory-list li, #products-for-sale li, #admin-product-list li {
+            background: #e9e9e9;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        #sales-history-list li {
+            background: #e9e9e9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: right;
+            border: 1px solid #ddd;
+        }
+        #sales-history-list li strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        #sales-history-list li .delete-record-btn, #admin-product-list .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: auto;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .form-section {
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button.sell-btn, button.login-btn, button.update-password-btn, button.save-btn {
+            background-color: #28a745;
+        }
+        button.logout-btn, button.delete-btn, button.cancel-btn {
+            background-color: #dc3545;
+        }
+        button.manage-btn {
+            background-color: #ffc107;
+            color: #333;
+        }
+        button.edit-btn {
+            background-color: #007bff;
+            color: white;
+            margin-left: 5px;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .message {
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .finance-summary {
+            margin-top: 20px;
+            text-align: right;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        .finance-summary p {
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .dashboard-card {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .dashboard-card h3 {
+            margin: 0 0 10px 0;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 8px;
+        }
+        .close-btn {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #sale-items li {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+        }
+        #sale-items, #edit-sale-items {
+            list-style: none;
+            padding: 0;
+        }
+        #sale-total, #edit-sale-total {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        /* Page Views */
+        .page-view {
+            display: none;
+        }
+        .page-view.active {
+            display: block;
+        }
+        .admin-controls {
+            display: none;
+            margin-top: 20px;
+        }
+        .admin-controls.visible {
+            display: block;
+        }
+        /* Dropdown Navigation */
+        nav {
+            background-color: #333;
+            overflow: hidden;
+            text-align: center;
+        }
+        nav .dropdown {
+            float: right;
+            overflow: hidden;
+        }
+        nav .dropdown .dropbtn {
+            font-size: 16px;
+            border: none;
+            outline: none;
+            color: white;
+            padding: 14px 16px;
+            background-color: inherit;
+            font-family: inherit;
+            margin: 0;
+            cursor: pointer;
+        }
+        nav .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            right: 0;
+        }
+        nav .dropdown-content button {
+            float: none;
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: right;
+            width: 100%;
+            background: none;
+            border: none;
+        }
+        nav .dropdown-content button:hover {
+            background-color: #ddd;
+        }
+        nav .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        /* Invoice styles for printing */
+        .invoice-print-container {
+            font-family: 'Arial', sans-serif;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: right;
+            direction: rtl;
+        }
+        .invoice-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .invoice-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .invoice-header p {
+            margin: 5px 0 0 0;
+        }
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .invoice-details p {
+            margin: 0;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: right;
+        }
+        .invoice-table th {
+            background-color: #f2f2f2;
+        }
+        .invoice-total {
+            text-align: left;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .thank-you-note {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+        @media print {
+            body { background-color: #fff; }
+            .container, .modal, .modal-content, .close-btn, #sale-items, #sale-total, .invoice-controls {
+                display: none !important;
+            }
+            .invoice-print-container {
+                display: block !important;
+                position: static !important;
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+            }
+            @page {
+                size: A5;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="login-page" class="page-view">
+        <div class="container">
+            <h1>تسجيل الدخول</h1>
+            <input type="password" id="password-input" placeholder="أدخل كلمة المرور" autocomplete="current-password">
+            <button id="login-btn" class="btn-green" onclick="login()">دخول</button>
+            <p id="login-message" class="message error"></p>
+            <small class="gray">كلمة المرور الافتراضية (إذا لم تتغيّر): <strong>1234</strong></small>
+        </div>
+    </div>
+    
+    <nav id="app-nav" style="display: none;">
+        <div class="dropdown">
+            <button class="dropbtn">القائمة الرئيسية</button>
+            <div class="dropdown-content">
+                <button onclick="showPage('main')">الصفحة الرئيسية</button>
+                <button onclick="openSaleModal()">نافذة المبيعات</button>
+                <button onclick="showPage('sales-history')">سجل المبيعات</button>
+                <button onclick="showPage('dashboard')">لوحة التحكم</button>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">إدارة المدير</button>
+            <div class="dropdown-content">
+                <button onclick="showPage('admin')">إدارة المنتجات</button>
+                <button onclick="showPage('manager')">تغيير كلمة المرور</button>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn" onclick="logout()">تسجيل الخروج</button>
+        </div>
+    </nav>
+    
+    <div id="main-content" class="page-view">
+        <div class="container">
+            <div id="main-page">
+                <h1 id="page-header">تطبيق إدارة المخزون والمبيعات</h1>
+                
+                <div id="finance-display" class="finance-summary">
+                    <h2>البيانات المالية</h2>
+                    <p>إجمالي المبيعات: <span id="salesTotal">0</span></p>
+                    <p>إجمالي المشتريات: <span id="purchasesTotal">0</span></p>
+                    <p>إجمالي المصروفات: <span id="expensesTotal">0</span></p>
+                    <p>صافي الربح: <span id="profitTotal">0</span></p>
+                </div>
+                <div id="inventory-display">
+                    <h2>المخزون الحالي</h2>
+                    <ul id="inventory-list"></ul>
+                </div>
+                <p id="message" class="message"></p>
+            </div>
+            
+            <div id="dashboard-page">
+                <h1>لوحة التحكم</h1>
+                <div class="dashboard-card">
+                    <h3>صافي الربح الإجمالي</h3>
+                    <p id="totalProfitDashboard">0</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>أكثر المنتجات مبيعًا</h3>
+                    <p id="mostSoldProduct">لا توجد بيانات</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>إجمالي المبيعات هذا الشهر</h3>
+                    <p id="monthlySales">0</p>
+                </div>
+            </div>
+
+            <div id="sales-history-page">
+                <h1>سجل المبيعات</h1>
+                <ul id="sales-history-list"></ul>
+                <button onclick="downloadSalesHistory()">تحميل سجل المبيعات</button>
+                <button class="delete-btn" onclick="clearSalesHistory()">حذف كل سجل المبيعات</button>
+            </div>
+
+            <div id="admin-page">
+                <h1>إدارة المنتجات والمصروفات</h1>
+                <div class="form-section">
+                    <h3>إضافة منتج جديد</h3>
+                    <input type="text" id="itemName" placeholder="اسم المنتج">
+                    <input type="number" id="itemQuantity" placeholder="الكمية">
+                    <input type="number" id="purchasePrice" placeholder="سعر الشراء للمنتج الواحد">
+                    <input type="number" id="salePrice" placeholder="سعر البيع للمنتج الواحد">
+                    <button onclick="addItem()">إضافة منتج</button>
+                </div>
+                <div class="form-section">
+                    <h3>تعديل وحذف المنتجات</h3>
+                    <ul id="admin-product-list"></ul>
+                </div>
+                <div class="form-section">
+                    <h3>تسجيل مصروفات</h3>
+                    <input type="text" id="expenseName" placeholder="وصف المصروف">
+                    <input type="number" id="expenseAmount" placeholder="مبلغ المصروف">
+                    <button onclick="recordExpense()">تسجيل مصروف</button>
+                </div>
+            </div>
+
+            <div id="manager-page">
+                <h1>إدارة المدير</h1>
+                <div class="form-section">
+                    <h3>تغيير كلمة المرور</h3>
+                    <input type="password" id="old-password" placeholder="كلمة المرور القديمة">
+                    <input type="password" id="new-password" placeholder="كلمة المرور الجديدة">
+                    <input type="password" id="confirm-password" placeholder="تأكيد كلمة المرور الجديدة">
+                    <button class="update-password-btn" onclick="changePassword()">تغيير كلمة المرور</button>
+                    <p id="password-message" class="message"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="saleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSaleModal()">&times;</span>
+            <h2>نافذة المبيعات</h2>
+            
+            <div id="sale-products-list">
+                <h3>اضغط على المنتج لإضافته</h3>
+                <ul id="products-for-sale"></ul>
+            </div>
+            
+            <hr>
+            
+            <div id="current-sale-items">
+                <h3>قائمة المبيعات الحالية</h3>
+                <ul id="sale-items"></ul>
+                <p id="sale-total">إجمالي المبيعات: 0</p>
+                <div class="invoice-controls" style="display: flex; justify-content: space-around; margin-top: 15px;">
+                    <button class="save-btn" style="width: 48%;" onclick="showInvoice()">معاينة وحفظ</button>
+                    <button class="cancel-btn" style="width: 48%;" onclick="cancelSale()">إلغاء البيع</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="invoiceModal" class="modal">
+        <div class="modal-content">
+            <div id="invoice-preview"></div>
+            <div class="invoice-controls" style="display: flex; justify-content: space-around; margin-top: 15px;">
+                <button class="save-btn" style="width: 30%;" onclick="saveSaleAndPrint()">تأكيد وطباعة</button>
+                <button class="save-btn" style="width: 30%;" onclick="saveSale()">تأكيد بدون طباعة</button>
+                <button class="cancel-btn" style="width: 30%;" onclick="closeInvoiceModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editSaleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEditSaleModal()">&times;</span>
+            <h2>تعديل فاتورة البيع</h2>
+            <h3><span id="edit-sale-id"></span></h3>
+            <ul id="edit-sale-items"></ul>
+            <p id="edit-sale-total">إجمالي الفاتورة: 0</p>
+            <div style="display: flex; justify-content: space-around; margin-top: 15px;">
+                <button class="save-btn" style="width: 48%;" onclick="saveEditedSale()">حفظ التعديلات</button>
+                <button class="cancel-btn" style="width: 48%;" onclick="closeEditSaleModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data and Configuration
+        const ADMIN_NAME = 'المدير';
+        const SHOP_NAME = 'King Dattes'; // [اسم المحل]
+        const WHATSAPP_NUMBER = '213557497242'; // [رقم الواتساب]
+        let inventory = {};
+        let salesTotal = 0;
+        let purchasesTotal = 0;
+        let expensesTotal = 0;
+        let salesHistory = [];
+        let currentPassword = '1234'; 
+        let currentSale = [];
+        let editingSale = null;
+
+        // DOM Elements
+        const loginPage = document.getElementById('login-page');
+        const mainContent = document.getElementById('main-content');
+        const mainPage = document.getElementById('main-page');
+        const salesHistoryPage = document.getElementById('sales-history-page');
+        const adminPage = document.getElementById('admin-page');
+        const managerPage = document.getElementById('manager-page');
+        const dashboardPage = document.getElementById('dashboard-page');
+        const appNav = document.getElementById('app-nav');
+        
+        const passwordInput = document.getElementById('password-input');
+        const loginMessage = document.getElementById('login-message');
+        const pageHeader = document.getElementById('page-header');
+        const inventoryList = document.getElementById('inventory-list');
+        const salesHistoryList = document.getElementById('sales-history-list');
+        const messageDisplay = document.getElementById('message');
+        const passwordMessage = document.getElementById('password-message');
+        const saleModal = document.getElementById('saleModal');
+        const invoiceModal = document.getElementById('invoiceModal');
+        const invoicePreview = document.getElementById('invoice-preview');
+        const productsForSaleList = document.getElementById('products-for-sale');
+        const saleItemsList = document.getElementById('sale-items');
+        const saleTotalDisplay = document.getElementById('sale-total');
+        const adminProductList = document.getElementById('admin-product-list');
+        const editSaleModal = document.getElementById('editSaleModal');
+        const editSaleItemsList = document.getElementById('edit-sale-items');
+        const editSaleTotalDisplay = document.getElementById('edit-sale-total');
+        
+        // --- Navigation Functions ---
+        function showPage(pageId) {
+            const allPages = [mainPage, salesHistoryPage, adminPage, managerPage, dashboardPage];
+            allPages.forEach(page => page.style.display = 'none');
+            
+            if (pageId === 'main') {
+                mainPage.style.display = 'block';
+            } else if (pageId === 'sales-history') {
+                salesHistoryPage.style.display = 'block';
+                displaySalesHistory();
+            } else if (pageId === 'admin') {
+                adminPage.style.display = 'block';
+                displayAdminProducts();
+            } else if (pageId === 'manager') {
+                managerPage.style.display = 'block';
+            } else if (pageId === 'dashboard') {
+                dashboardPage.style.display = 'block';
+                displayDashboard();
+            }
+        }
+        
+        function login() {
+            if (passwordInput.value === currentPassword) {
+                loginPage.classList.remove('active');
+                mainContent.classList.add('active');
+                appNav.style.display = 'block';
+                showPage('main');
+                pageHeader.textContent = `تطبيق إدارة المخزون والمبيعات - ${ADMIN_NAME}`;
+                localStorage.setItem('loggedIn', 'true');
+            } else {
+                loginMessage.textContent = 'كلمة المرور غير صحيحة.';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('loggedIn');
+            location.reload(); 
+        }
+
+        function changePassword() {
+            const oldPass = document.getElementById('old-password').value;
+            const newPass = document.getElementById('new-password').value;
+            const confirmPass = document.getElementById('confirm-password').value;
+
+            if (oldPass !== currentPassword) {
+                passwordMessage.textContent = 'كلمة المرور القديمة غير صحيحة.';
+                passwordMessage.className = 'message error';
+                return;
+            }
+            if (newPass.length < 4) {
+                passwordMessage.textContent = 'كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل.';
+                passwordMessage.className = 'message error';
+                return;
+            }
+            if (newPass !== confirmPass) {
+                passwordMessage.textContent = 'كلمة المرور الجديدة وتأكيدها غير متطابقان.';
+                passwordMessage.className = 'message error';
+                return;
+            }
+
+            currentPassword = newPass;
+            saveToLocalStorage();
+            passwordMessage.textContent = 'تم تغيير كلمة المرور بنجاح!';
+            passwordMessage.className = 'message success';
+            
+            document.getElementById('old-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+        }
+
+        // --- Local Storage Functions ---
+        function saveToLocalStorage() {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            localStorage.setItem('salesTotal', salesTotal);
+            localStorage.setItem('purchasesTotal', purchasesTotal);
+            localStorage.setItem('expensesTotal', expensesTotal);
+            localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+            localStorage.setItem('password', currentPassword);
+        }
+
+        function loadFromLocalStorage() {
+            if (localStorage.getItem('inventory')) {
+                inventory = JSON.parse(localStorage.getItem('inventory'));
+            }
+            if (localStorage.getItem('salesTotal')) {
+                salesTotal = parseFloat(localStorage.getItem('salesTotal'));
+            }
+            if (localStorage.getItem('purchasesTotal')) {
+                purchasesTotal = parseFloat(localStorage.getItem('purchasesTotal'));
+            }
+            if (localStorage.getItem('expensesTotal')) {
+                expensesTotal = parseFloat(localStorage.getItem('expensesTotal'));
+            }
+            if (localStorage.getItem('salesHistory')) {
+                salesHistory = JSON.parse(localStorage.getItem('salesHistory'));
+            }
+            if (localStorage.getItem('password')) {
+                currentPassword = localStorage.getItem('password');
+            }
+        }
+        
+        // --- Display and UI Functions ---
+        function displayTotals() {
+            document.getElementById('salesTotal').textContent = salesTotal.toFixed(2);
+            document.getElementById('purchasesTotal').textContent = purchasesTotal.toFixed(2);
+            document.getElementById('expensesTotal').textContent = expensesTotal.toFixed(2);
+            document.getElementById('profitTotal').textContent = (salesTotal - (purchasesTotal + expensesTotal)).toFixed(2);
+        }
+
+        function displayInventory() {
+            inventoryList.innerHTML = '';
+            for (const item in inventory) {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${item}</span> <span>الكمية: ${inventory[item].quantity}</span>`;
+                inventoryList.appendChild(li);
+            }
+        }
+        
+        function displaySalesHistory() {
+            salesHistoryList.innerHTML = '';
+            if (salesHistory.length === 0) {
+                salesHistoryList.innerHTML = '<li>لا يوجد سجل مبيعات.</li>';
+                return;
+            }
+            salesHistory.forEach(sale => {
+                const li = document.createElement('li');
+                const itemsList = sale.items.map(item => `<li>${item.name} (x${item.quantity}) - السعر: ${item.price.toFixed(2)}</li>`).join('');
+                li.innerHTML = `
+                    <div style="display:flex; justify-content: space-between; align-items:center;">
+                        <div>
+                            <strong>التاريخ: ${new Date(sale.date).toLocaleString()}</strong>
+                            <p>إجمالي الفاتورة: ${sale.total.toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <button class="edit-btn" onclick="openEditSaleModal(${sale.id})">عرض وتعديل</button>
+                            <button class="delete-record-btn" onclick="deleteSaleRecord(${sale.id})">حذف</button>
+                        </div>
+                    </div>
+                `;
+                salesHistoryList.appendChild(li);
+            });
+        }
+        
+        function displayAdminProducts() {
+            adminProductList.innerHTML = '';
+            for (const item in inventory) {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item}</span>
+                    <span>الكمية: ${inventory[item].quantity}</span>
+                    <button class="edit-btn" onclick="editProductPrompt('${item}')">تعديل</button>
+                    <button class="delete-record-btn" onclick="deleteProduct('${item}')">حذف</button>
+                `;
+                adminProductList.appendChild(li);
+            }
+        }
+
+        function displayDashboard() {
+            const totalProfit = salesTotal - (purchasesTotal + expensesTotal);
+            document.getElementById('totalProfitDashboard').textContent = totalProfit.toFixed(2);
+            
+            // Find most sold product
+            const productCounts = {};
+            salesHistory.forEach(sale => {
+                sale.items.forEach(item => {
+                    if (productCounts[item.name]) {
+                        productCounts[item.name] += item.quantity;
+                    } else {
+                        productCounts[item.name] = item.quantity;
+                    }
+                });
+            });
+            let mostSold = 'لا توجد مبيعات';
+            let maxCount = 0;
+            for (const product in productCounts) {
+                if (productCounts[product] > maxCount) {
+                    maxCount = productCounts[product];
+                    mostSold = `${product} (${maxCount} قطعة)`;
+                }
+            }
+            document.getElementById('mostSoldProduct').textContent = mostSold;
+
+            // Calculate monthly sales for the current month
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            let monthlySalesTotal = 0;
+            salesHistory.forEach(sale => {
+                const saleDate = new Date(sale.date);
+                if (saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear) {
+                    monthlySalesTotal += sale.total;
+                }
+            });
+            document.getElementById('monthlySales').textContent = monthlySalesTotal.toFixed(2);
+        }
+
+        function showMessage(text, isError = false) {
+            messageDisplay.textContent = text;
+            messageDisplay.className = isError ? 'message error' : 'message success';
+        }
+
+        function openSaleModal() {
+            productsForSaleList.innerHTML = '';
+            currentSale = [];
+            saleItemsList.innerHTML = '';
+            saleTotalDisplay.textContent = 'إجمالي المبيعات: 0';
+            
+            for (const item in inventory) {
+                if (inventory[item].quantity > 0) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${item}</span> <span>السعر: ${inventory[item].salePrice.toFixed(2)}</span>`;
+                    li.onclick = () => addToSale(item);
+                    productsForSaleList.appendChild(li);
+                }
+            }
+            saleModal.style.display = 'block';
+        }
+
+        function closeSaleModal() {
+            saleModal.style.display = 'none';
+        }
+
+        function addToSale(itemName) {
+            if (inventory[itemName].quantity > 0) {
+                const existingItem = currentSale.find(item => item.name === itemName);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    currentSale.push({ name: itemName, quantity: 1, price: inventory[itemName].salePrice });
+                }
+                
+                inventory[itemName].quantity -= 1;
+                updateCurrentSaleDisplay();
+                showMessage(`تمت إضافة قطعة من "${itemName}" إلى سلة المبيعات.`, false);
+                displayInventory();
+            } else {
+                showMessage(`عذرًا، كمية "${itemName}" نفدت.`, true);
+            }
+        }
+
+        function updateCurrentSaleDisplay() {
+            saleItemsList.innerHTML = '';
+            let total = 0;
+            currentSale.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item.name} (x${item.quantity})</span> <span>السعر: ${ (item.price * item.quantity).toFixed(2) }</span>
+                `;
+                saleItemsList.appendChild(li);
+                total += item.price * item.quantity;
+            });
+            saleTotalDisplay.textContent = `إجمالي المبيعات: ${total.toFixed(2)}`;
+        }
+        
+        function cancelSale() {
+            if (confirm("هل أنت متأكد من إلغاء عملية البيع الحالية؟ سيتم إعادة المنتجات إلى المخزون.")) {
+                currentSale.forEach(item => {
+                    if (inventory[item.name]) {
+                        inventory[item.name].quantity += item.quantity;
+                    }
+                });
+                currentSale = [];
+                closeSaleModal();
+                displayInventory();
+                showMessage('تم إلغاء عملية البيع الحالية.', false);
+            }
+        }
+        
+        // --- Invoice Functions ---
+        function showInvoice() {
+            if (currentSale.length === 0) {
+                showMessage('سلة المبيعات فارغة. لا يمكن إنشاء فاتورة.', true);
+                return;
+            }
+            
+            const saleTotal = currentSale.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const saleDate = new Date().toLocaleString();
+            
+            let itemsHTML = '';
+            currentSale.forEach(item => {
+                itemsHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.price.toFixed(2)}</td>
+                        <td>${(item.quantity * item.price).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            invoicePreview.innerHTML = `
+                <div class="invoice-print-container" id="printable-invoice">
+                    <div class="invoice-header">
+                        <h2>${SHOP_NAME}</h2>
+                        <p>رقم الفاتورة: #${Math.floor(Date.now() / 1000)}</p>
+                        <p>التاريخ: ${saleDate}</p>
+                        <p>رقم الواتساب: ${WHATSAPP_NUMBER}</p>
+                    </div>
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>المجموع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHTML}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" style="text-align: left;">الإجمالي</th>
+                                <th>${saleTotal.toFixed(2)}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="thank-you-note">
+                        <p>شكرًا لشرائكم من ${SHOP_NAME}!</p>
+                    </div>
+                </div>
+            `;
+            
+            invoiceModal.style.display = 'block';
+            closeSaleModal();
+        }
+
+        function closeInvoiceModal() {
+            invoiceModal.style.display = 'none';
+        }
+
+        function saveSaleAndPrint() {
+            saveSale(true);
+        }
+
+        function saveSale(shouldPrint = false) {
+            if (currentSale.length === 0) {
+                showMessage('سلة المبيعات فارغة. لا يمكن حفظ العملية.', true);
+                return;
+            }
+
+            const saleTotal = currentSale.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            salesTotal += saleTotal;
+            
+            const newSaleRecord = {
+                id: Date.now(),
+                date: new Date(),
+                items: currentSale,
+                total: saleTotal
+            };
+            salesHistory.unshift(newSaleRecord);
+
+            showMessage(`تم حفظ عملية البيع بنجاح. إجمالي: ${saleTotal.toFixed(2)}.`, false);
+            
+            saveToLocalStorage();
+            displayTotals();
+            closeInvoiceModal();
+            
+            if (shouldPrint) {
+                window.print();
+            }
+
+            currentSale = [];
+            displayInventory();
+        }
+
+        
+        // --- Edit Sale Functions ---
+        function openEditSaleModal(saleId) {
+            const sale = salesHistory.find(s => s.id === saleId);
+            if (!sale) {
+                alert("لم يتم العثور على الفاتورة.");
+                return;
+            }
+            editingSale = JSON.parse(JSON.stringify(sale)); 
+            
+            document.getElementById('edit-sale-id').textContent = `رقم الفاتورة: ${editingSale.id}`;
+            updateEditSaleDisplay();
+            editSaleModal.style.display = 'block';
+        }
+        
+        function updateEditSaleDisplay() {
+            editSaleItemsList.innerHTML = '';
+            let total = 0;
+            editingSale.items.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item.name}</span>
+                    <span>السعر: ${item.price.toFixed(2)}</span>
+                    <input type="number" value="${item.quantity}" min="0" onchange="updateEditedItemQty(${index}, this.value)">
+                    <button class="delete-btn" onclick="removeEditedItem(${index})">❌</button>
+                `;
+                editSaleItemsList.appendChild(li);
+            });
+            editSaleTotalDisplay.textContent = `إجمالي الفاتورة: ${total.toFixed(2)}`;
+        }
+        
+        function updateEditedItemQty(index, newQty) {
+            const oldQty = editingSale.items[index].quantity;
+            const qtyChange = parseInt(newQty) - oldQty;
+            const itemName = editingSale.items[index].name;
+
+            if (inventory[itemName] && inventory[itemName].quantity >= qtyChange) {
+                editingSale.items[index].quantity = parseInt(newQty);
+                inventory[itemName].quantity -= qtyChange;
+                updateEditSaleDisplay();
+            } else {
+                alert('الكمية الجديدة غير متوفرة في المخزون.');
+                editingSale.items[index].quantity = oldQty; 
+                updateEditSaleDisplay();
+            }
+        }
+
+        function removeEditedItem(index) {
+            const item = editingSale.items[index];
+            if (inventory[item.name]) {
+                inventory[item.name].quantity += item.quantity;
+            }
+            editingSale.items.splice(index, 1);
+            updateEditSaleDisplay();
+        }
+
+        function saveEditedSale() {
+            if (editingSale.items.length === 0) {
+                if (confirm("الفاتورة فارغة. هل تريد حذفها؟")) {
+                    deleteSaleRecord(editingSale.id);
+                    closeEditSaleModal();
+                    return;
+                } else {
+                    return;
+                }
+            }
+            
+            const originalSaleIndex = salesHistory.findIndex(s => s.id === editingSale.id);
+            if (originalSaleIndex !== -1) {
+                const originalSale = salesHistory[originalSaleIndex];
+                
+                salesTotal -= originalSale.total;
+                
+                const newTotal = editingSale.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                editingSale.total = newTotal;
+                salesTotal += newTotal;
+
+                salesHistory[originalSaleIndex] = editingSale;
+                
+                saveToLocalStorage();
+                displaySalesHistory();
+                displayTotals();
+                displayInventory();
+                closeEditSaleModal();
+                showMessage('تم حفظ التعديلات على الفاتورة بنجاح.', false);
+            }
+        }
+        
+        function closeEditSaleModal() {
+            editSaleModal.style.display = 'none';
+        }
+
+
+        // --- Core Application Logic ---
+        function addItem() {
+            const itemName = document.getElementById('itemName').value.trim();
+            const itemQuantity = parseInt(document.getElementById('itemQuantity').value, 10);
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value);
+            const salePrice = parseFloat(document.getElementById('salePrice').value);
+
+            if (!itemName || isNaN(itemQuantity) || itemQuantity <= 0 || isNaN(purchasePrice) || purchasePrice <= 0 || isNaN(salePrice) || salePrice <= 0) {
+                showMessage('يرجى إدخال جميع الحقول بشكل صحيح.', true);
+                return;
+            }
+
+            if (inventory[itemName]) {
+                purchasesTotal -= (inventory[itemName].quantity * inventory[itemName].purchasePrice);
+                inventory[itemName].quantity += itemQuantity;
+                inventory[itemName].purchasePrice = purchasePrice;
+                inventory[itemName].salePrice = salePrice;
+                showMessage(`تم تحديث كمية "${itemName}". الكمية الجديدة: ${inventory[itemName].quantity}.`, false);
+            } else {
+                inventory[itemName] = { quantity: itemQuantity, purchasePrice: purchasePrice, salePrice: salePrice };
+                showMessage(`تمت إضافة "${itemName}" إلى المخزون.`, false);
+            }
+
+            purchasesTotal += itemQuantity * purchasePrice;
+            saveToLocalStorage();
+            displayTotals();
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQuantity').value = '';
+            document.getElementById('purchasePrice').value = '';
+            document.getElementById('salePrice').value = '';
+            displayInventory();
+            displayAdminProducts();
+        }
+
+        function editProductPrompt(itemName) {
+            const newName = prompt(`تعديل اسم المنتج "${itemName}":`, itemName);
+            if (newName && newName !== itemName) {
+                const itemData = inventory[itemName];
+                delete inventory[itemName];
+                inventory[newName] = itemData;
+                saveToLocalStorage();
+                displayInventory();
+                displayAdminProducts();
+                showMessage(`تم تغيير اسم المنتج من "${itemName}" إلى "${newName}".`, false);
+                return;
+            }
+            
+            const newQty = prompt(`تعديل كمية "${itemName}":`, inventory[itemName].quantity);
+            if (newQty !== null && !isNaN(parseInt(newQty, 10))) {
+                inventory[itemName].quantity = parseInt(newQty, 10);
+                saveToLocalStorage();
+                displayInventory();
+                displayAdminProducts();
+                showMessage(`تم تعديل كمية "${itemName}".`, false);
+            }
+
+            const newPrice = prompt(`تعديل سعر البيع لـ "${itemName}":`, inventory[itemName].salePrice);
+            if (newPrice !== null && !isNaN(parseFloat(newPrice))) {
+                inventory[itemName].salePrice = parseFloat(newPrice);
+                saveToLocalStorage();
+                displayInventory();
+                displayAdminProducts();
+                showMessage(`تم تعديل سعر بيع "${itemName}".`, false);
+            }
+        }
+
+        function deleteProduct(itemName) {
+            if (confirm(`هل أنت متأكد من حذف المنتج "${itemName}" بالكامل؟`)) {
+                if (inventory[itemName]) {
+                    delete inventory[itemName];
+                    saveToLocalStorage();
+                    displayInventory();
+                    displayAdminProducts();
+                    showMessage(`تم حذف المنتج "${itemName}" بنجاح.`, false);
+                }
+            }
+        }
+
+        function recordExpense() {
+            const expenseName = document.getElementById('expenseName').value.trim();
+            const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
+
+            if (!expenseName || isNaN(expenseAmount) || expenseAmount <= 0) {
+                showMessage('يرجى إدخال وصف ومبلغ صحيح للمصروف.', true);
+                return;
+            }
+
+            expensesTotal += expenseAmount;
+            showMessage(`تم تسجيل مصروف "${expenseName}" بقيمة ${expenseAmount.toFixed(2)}.`, false);
+            
+            saveToLocalStorage();
+            displayTotals();
+            document.getElementById('expenseName').value = '';
+            document.getElementById('expenseAmount').value = '';
+        }
+        
+        function clearSalesHistory() {
+            if (confirm("هل أنت متأكد من حذف سجل المبيعات بالكامل؟ لا يمكن التراجع عن هذا الإجراء.")) {
+                salesHistory = [];
+                salesTotal = 0; 
+                showMessage('تم حذف سجل المبيعات بنجاح.', false);
+                saveToLocalStorage();
+                displaySalesHistory();
+                displayTotals(); 
+            }
+        }
+
+        function deleteSaleRecord(saleId) {
+            if (confirm("هل أنت متأكد من حذف هذه العملية؟ سيتم استعادة المنتجات إلى المخزون.")) {
+                const saleIndex = salesHistory.findIndex(sale => sale.id === saleId);
+                if (saleIndex !== -1) {
+                    const deletedSale = salesHistory[saleIndex];
+                    
+                    deletedSale.items.forEach(item => {
+                        if (inventory[item.name]) {
+                            inventory[item.name].quantity += item.quantity;
+                        }
+                    });
+
+                    salesTotal -= deletedSale.total;
+
+                    salesHistory.splice(saleIndex, 1);
+                    
+                    showMessage('تم حذف العملية وإعادة المنتجات إلى المخزون بنجاح.', false);
+                    saveToLocalStorage();
+                    displaySalesHistory();
+                    displayTotals();
+                    displayInventory(); 
+                }
+            }
+        }
+
+        function downloadSalesHistory() {
+            const data = JSON.stringify(salesHistory, null, 2);
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'سجل-المبيعات.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // --- Event Listeners ---
+        window.onclick = function(event) {
+            if (event.target == saleModal) {
+                closeSaleModal();
+            }
+            if (event.target == editSaleModal) {
+                closeEditSaleModal();
+            }
+            if (event.target == invoiceModal) {
+                closeInvoiceModal();
+            }
+        }
+        
+        window.onload = () => {
+            loadFromLocalStorage();
+            displayInventory();
+            displayTotals();
+
+            if (localStorage.getItem('loggedIn') === 'true') {
+                loginPage.classList.remove('active');
+                mainContent.classList.add('active');
+                appNav.style.display = 'block';
+                showPage('main');
+                pageHeader.textContent = `تطبيق إدارة المخزون والمبيعات - ${ADMIN_NAME}`;
+            } else {
+                loginPage.classList.add('active');
+            }
+        };
+    </script>
+</body>
+</html>
