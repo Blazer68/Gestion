@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق المخزون والمبيعات</title>
+    <title>MOUAR-Gesrion</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -367,6 +367,10 @@
                     <p id="totalProfitDashboard">0</p>
                 </div>
                 <div class="dashboard-card">
+                    <h3>إجمالي المشتريات</h3>
+                    <p id="totalPurchasesDashboard">0</p>
+                </div>
+                <div class="dashboard-card">
                     <h3>أكثر المنتجات مبيعًا</h3>
                     <p id="mostSoldProduct">لا توجد بيانات</p>
                 </div>
@@ -670,6 +674,7 @@
         function displayDashboard() {
             const totalProfit = salesTotal - (purchasesTotal + expensesTotal);
             document.getElementById('totalProfitDashboard').textContent = totalProfit.toFixed(2);
+            document.getElementById('totalPurchasesDashboard').textContent = purchasesTotal.toFixed(2);
             
             // Find most sold product
             const productCounts = {};
